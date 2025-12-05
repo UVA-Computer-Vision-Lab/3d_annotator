@@ -50,7 +50,7 @@ const processFolderMetadataAsync = async (itemPath, item, basePath, level) => {
     }
 
     // Count objects from ground truth file
-    const groundTruthFile = files.find(file => file === '3dbbox_ground_no_icp.json');
+    const groundTruthFile = files.find(file => file === '3dbbox.json');
     if (groundTruthFile) {
         const groundTruthPath = path.join(itemPath, groundTruthFile);
         const groundTruthData = await fsPromises.readFile(groundTruthPath, 'utf8').catch(() => null);
@@ -126,14 +126,14 @@ const buildSortedFoldersCache = (assetsDir) => {
         let countB = 0;
 
         const filesA = fs.readdirSync(pathA);
-        const groundTruthA = filesA.find(file => file === '3dbbox_ground_no_icp.json');
+        const groundTruthA = filesA.find(file => file === '3dbbox.json');
         if (groundTruthA) {
             const dataA = JSON.parse(fs.readFileSync(path.join(pathA, groundTruthA), 'utf8'));
             countA = Array.isArray(dataA) ? dataA.length : 0;
         }
 
         const filesB = fs.readdirSync(pathB);
-        const groundTruthB = filesB.find(file => file === '3dbbox_ground_no_icp.json');
+        const groundTruthB = filesB.find(file => file === '3dbbox.json');
         if (groundTruthB) {
             const dataB = JSON.parse(fs.readFileSync(path.join(pathB, groundTruthB), 'utf8'));
             countB = Array.isArray(dataB) ? dataB.length : 0;

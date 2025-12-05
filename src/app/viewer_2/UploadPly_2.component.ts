@@ -525,7 +525,7 @@ export class PlyViewer2Component implements OnInit, OnDestroy {
         });
 
       // Load bounding box file
-      const file = this.type === 'default' ? '3dbbox_ground_no_icp' : '3dbox_refined';
+      const file = this.type === 'default' ? '3dbbox' : '3dbox_refined';
       fetch(`${this.apiBaseUrl}/assets/val/${folderId}/${file}.json`)
         .then(response => {
           if (!response.ok) {

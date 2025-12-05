@@ -103,8 +103,8 @@ Store annotation data locally in `/public/assets/val/<parent_folder>/` with the 
 
 1. `cam_params.json` - Camera intrinsic parameters (K matrix)
 2. `input.png` - RGB image
-3. `depth_scene.png` - Depth map
-4. `3dbbox_ground_no_icp.json` - Initial ground truth bounding boxes
+3. `depth_scene.ply` - Depth map
+4. `3dbbox.json` - Initial ground truth bounding boxes
 
 ### Output Files
 
