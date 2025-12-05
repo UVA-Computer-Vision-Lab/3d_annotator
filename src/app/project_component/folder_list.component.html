@@ -1,0 +1,224 @@
+<div class="folder-explorer-container">
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoadingSorting">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Sorting folders...</div>
+      <div class="timer-display">
+        <div class="timer-label">Elapsed Time:</div>
+        <div class="timer-value">{{ (sortingElapsedTime / 1000).toFixed(3) }}s</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Folder Explorer</h2>
+  
+  <div class="folder-selector">
+    <button (click)="refreshDirectory()" class="refresh-button">
+      Refresh Directory
+    </button>
+    <span class="selected-path">
+      Exploring: /public/assets/
+    </span>
+    <div class="sort-selector">
+      <label for="sortBy">Sort by:</label>
+      <select id="sortBy" [(ngModel)]="sortBy" (change)="onSortChange()" class="sort-dropdown">
+        <option value="name">Name</option>
+        <option value="objectCount">Number of Objects</option>
+      </select>
+    </div>
+  </div>
+  
+  <!-- New directory stats section -->
+  <div class="directory-stats">
+    <div class="stats-card total">
+      <span class="stats-number">{{ directoryStats.totalFolders }}</span>
+      <span class="stats-label">Total Folders</span>
+    </div>
+    <div class="stats-card refined">
+      <span class="stats-number">{{ directoryStats.refinedFolders }}</span>
+      <span class="stats-label">Refined Folders</span>
+      <span class="stats-percentage" *ngIf="directoryStats.totalFolders > 0">
+        ({{ (directoryStats.refinedFolders / directoryStats.totalFolders * 100).toFixed(1) }}%)
+      </span>
+    </div>
+    <div class="stats-card deleted">
+      <span class="stats-number">{{ directoryStats.deletedFolders }}</span>
+      <span class="stats-label">Deleted Folders</span>
+      <span class="stats-percentage" *ngIf="directoryStats.totalFolders > 0">
+        ({{ (directoryStats.deletedFolders / directoryStats.totalFolders * 100).toFixed(1) }}%)
+      </span>
+    </div>
+    <div class="stats-card remaining">
+      <span class="stats-number">{{ remainingFolders }}</span>
+      <span class="stats-label">Remaining Folders</span>
+      <span class="stats-percentage" *ngIf="directoryStats.totalFolders > 0">
+        ({{ (remainingFolders / directoryStats.totalFolders * 100).toFixed(1) }}%)
+      </span>
+    </div>
+  </div>
+  
+  <!-- Annotator Statistics -->
+  <div class="annotator-stats" *ngIf="directoryStats.annotatorStats">
+    <h3>Annotator Statistics</h3>
+    <div class="annotator-stats-grid">
+      <div class="annotator-stat-item" *ngFor="let item of getAnnotatorStats()">
+        <div class="annotator-stat-header">
+          <span class="annotator-name-stat">{{ item.name }}</span>
+          <span class="annotator-total-count">{{ item.count }} total</span>
+        </div>
+        <div class="annotator-stat-details">
+          <span class="stat-detail annotation-detail">
+            <span class="stat-icon">📝</span>
+            <span class="stat-text">{{ item.annotations }} annotations</span>
+          </span>
+          <span class="stat-detail deletion-detail">
+            <span class="stat-icon">🗑️</span>
+            <span class="stat-text">{{ item.deletions }} deletions</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="folderStructure.length > 0" class="folder-table-container">
+    <table class="folder-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Path</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Annotator</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let item of flattenedFolderStructure">
+          <tr [style.padding-left.px]="item.level * 20">
+            <!-- Only show ID for parent directories (level 0) -->
+            <td>{{ item.level === 0 ? item.id : '' }}</td>
+            <td>
+              <span class="indent" [style.width.px]="item.level * 20"></span>
+              <span class="folder-icon" *ngIf="item.isFolder">📁</span>
+              <span class="file-icon" *ngIf="!item.isFolder">📄</span>
+              {{ item.name }}
+            </td>
+            <td>{{ item.path }}</td>
+            <td>{{ item.isFolder ? 'Folder' : 'File' }}</td>
+            <td>
+              <!-- Show deleted chip if is_deleted is true -->
+              <span *ngIf="item.is_deleted" class="deleted-chip">Deleted</span>
+              
+              <!-- Otherwise show refinement check as usual when has3dBoxRefined is true -->
+              <span *ngIf="!item.is_deleted && item.has3dBoxRefined" class="success-check">✓</span>
+            </td>
+            <td>
+              <!-- Show annotator name and duration if available -->
+              <div *ngIf="item.annotator" class="annotator-info-cell">
+                <span class="annotator-badge">{{ item.annotator }}</span>
+                <span *ngIf="item.annotationDuration" class="duration-badge">{{ item.annotationDuration }}s</span>
+              </div>
+              <span *ngIf="!item.annotator" class="no-annotator">-</span>
+            </td>
+            <td>
+              <!-- Toggle button for folders with children -->
+              <!-- <button *ngIf="item.isFolder && item.children?.length" 
+                      (click)="toggleFolder(item)"
+                      class="toggle-button">
+                {{ item.isExpanded ? 'Collapse' : 'Expand' }}
+              </button> -->
+              
+              <!-- Open Dashboard button ONLY for top-level folders (level = 0) -->
+              <button *ngIf="item.isFolder && item.level === 0" 
+                      (click)="openDashboard(item)"
+                      class="dashboard-button">
+                Open Dashboard
+              </button>
+              
+              <!-- Open Refined Bounding Box button for items with 3D box refinements -->
+              <button *ngIf="item.has3dBoxRefined" 
+                      (click)="openRefinedBox(item)"
+                      class="refined-box-button">
+                Open Refined Box
+              </button>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Pagination controls in separate container below the table -->
+  <div *ngIf="folderStructure.length > 0" class="pagination-container">
+    <div class="pagination-info">
+      Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }} 
+      ({{ pagination.totalItems }} total parent directories)
+    </div>
+    <div class="pagination-buttons">
+      <button 
+        [disabled]="pagination.currentPage === 1" 
+        (click)="prevPage()" 
+        class="pagination-button">
+        Previous
+      </button>
+      
+      <ng-container *ngFor="let page of [].constructor(pagination.totalPages < 10 ? pagination.totalPages : 0); let i = index">
+        <button 
+          [class.active]="pagination.currentPage === i + 1"
+          (click)="changePage(i + 1)" 
+          class="pagination-page-button">
+          {{ i + 1 }}
+        </button>
+      </ng-container>
+      
+      <!-- If there are more than 10 pages, show current page and nearby pages -->
+      <ng-container *ngIf="pagination.totalPages >= 10">
+        <!-- First page -->
+        <button 
+          [class.active]="pagination.currentPage === 1"
+          (click)="changePage(1)" 
+          class="pagination-page-button">
+          1
+        </button>
+        
+        <!-- Ellipsis if needed -->
+        <span *ngIf="pagination.currentPage > 4" class="pagination-ellipsis">...</span>
+        
+        <!-- Pages near current page -->
+        <ng-container *ngFor="let i of [-2, -1, 0, 1, 2]">
+          <button 
+            *ngIf="pagination.currentPage + i > 1 && pagination.currentPage + i < pagination.totalPages"
+            [class.active]="i === 0"
+            (click)="changePage(pagination.currentPage + i)" 
+            class="pagination-page-button">
+            {{ pagination.currentPage + i }}
+          </button>
+        </ng-container>
+        
+        <!-- Ellipsis if needed -->
+        <span *ngIf="pagination.currentPage < pagination.totalPages - 3" class="pagination-ellipsis">...</span>
+        
+        <!-- Last page -->
+        <button 
+          [class.active]="pagination.currentPage === pagination.totalPages"
+          (click)="changePage(pagination.totalPages)" 
+          class="pagination-page-button">
+          {{ pagination.totalPages }}
+        </button>
+      </ng-container>
+      
+      <button 
+        [disabled]="pagination.currentPage === pagination.totalPages" 
+        (click)="nextPage()" 
+        class="pagination-button">
+        Next
+      </button>
+    </div>
+  </div>
+  
+  <div *ngIf="folderStructure.length === 0" class="empty-state">
+    No folders found in the assets directory.
+  </div>
+</div>

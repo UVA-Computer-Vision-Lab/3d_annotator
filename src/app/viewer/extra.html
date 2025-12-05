@@ -1,0 +1,73 @@
+      <!-- Bounding Box Editing Controls
+      <div *ngIf="boundingBoxEditData" class="bbox-edit-controls">
+        <h3>Bounding Box Edit</h3>
+        
+        <!-- Center Edit -->
+        <div class="control-group">
+          <label>Center X:</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.centerX" 
+            (ngModelChange)="updateBoundingBox()"
+            step="0.1"
+          />
+          <label>Center Y:</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.centerY" 
+            (ngModelChange)="updateBoundingBox()"
+            step="0.1"
+          />
+          <label>Center Z:</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.centerZ" 
+            (ngModelChange)="updateBoundingBox()"
+            step="0.1"
+          />
+        </div>
+        
+        <!-- Dimensions Edit -->
+        <div class="control-group">
+          <label>Width:</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.dimensionX" 
+            (ngModelChange)="updateBoundingBox()"
+            min="0.1" 
+            step="0.1"
+          />
+          <label>Height:</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.dimensionY" 
+            (ngModelChange)="updateBoundingBox()"
+            min="0.1" 
+            step="0.1"
+          />
+          <label>Depth:</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.dimensionZ" 
+            (ngModelChange)="updateBoundingBox()"
+            min="0.1" 
+            step="0.1"
+          />
+        </div>
+        
+        <!-- Rotation Edit -->
+        <div class="control-group">
+          <label>Rotation X (degrees):</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.rotationX" 
+            (ngModelChange)="updateBoundingBox()"
+            step="1"
+          />
+          <label>Rotation Y (degrees):</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.rotationY" 
+            (ngModelChange)="updateBoundingBox()"
+            step="1"
+          />
+          <label>Rotation Z (degrees):</label>
+          <input type="number" 
+            [(ngModel)]="boundingBoxEditData.rotationZ" 
+            (ngModelChange)="updateBoundingBox()"
+            step="1"
+          />
+        </div>
+      </div> -->

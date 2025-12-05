@@ -1,0 +1,33 @@
+<div class="container">
+    <div #rendererContainer class="scene-container" style="width: 100%; height: 100%; background-color: #f0f0f0;"></div>
+</div>
+<div class="form">
+    <div class="mode-indicator" *ngIf="isEditMode">
+        Editing Mode (Press SPACE to exit)
+    </div>
+    <div class="controls">
+      <div class="file-inputs">
+        <input 
+          type="file" 
+          (change)="onFileUpload($event, 'ply')"
+          accept=".ply"
+          class="file-input"
+          placeholder="Upload PLY File"
+        />
+        <input 
+          type="file" 
+          (change)="onFileUpload($event, 'glb')"
+          accept=".glb,.gltf"
+          class="file-input"
+          placeholder="Upload GLB/GLTF File"
+        />
+        <input 
+          type="file" 
+          (change)="onJSONFileUpload($event)"
+          accept=".json"
+          class="file-input"
+          placeholder="Upload JSON Bounding Box File"
+        />
+      </div>
+    </div>
+</div>

@@ -1,0 +1,192 @@
+<div class="container">
+  <!-- Toast Notification -->
+  <div class="toast-notification" *ngIf="toastVisible" [innerHTML]="toastMessage">
+  </div>
+
+  <!-- Annotator input section (always visible) -->
+  <div class="annotator-section-top">
+    <div class="annotator-display" *ngIf="!showAnnotatorInput && annotatorName">
+      <span class="annotator-label">Annotator:</span>
+      <span class="annotator-name">{{ annotatorName }}</span>
+      <button (click)="toggleAnnotatorInput()" class="annotator-edit-btn">Edit</button>
+    </div>
+    <div class="annotator-input-container" *ngIf="showAnnotatorInput || !annotatorName">
+      <label class="annotator-label">Annotator Name:</label>
+      <input type="text"
+             [(ngModel)]="annotatorName"
+             placeholder="Enter your name"
+             class="annotator-input"
+             (keyup.enter)="saveAnnotatorName()"
+             (keyup.escape)="toggleAnnotatorInput()">
+      <button (click)="saveAnnotatorName()" class="annotator-save-btn">Save</button>
+      <button *ngIf="showAnnotatorInput && annotatorName"
+              (click)="toggleAnnotatorInput()"
+              class="annotator-cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Middle container: 3D View + 2D Views side by side -->
+  <div class="middle-container">
+    <!-- Left: 3D View (60%) -->
+    <div class="scene-container">
+      <div #rendererContainer style="width: 100%; height: 100%; background-color: #f0f0f0;"></div>
+    </div>
+
+    <!-- Right: 2D Orthogonal Views (40%) -->
+    <div class="orthogonal-views-container" *ngIf="boundingBoxEditData.length > 0 && selectedBoundingBoxIndex !== null">
+      <h4>2D Projection Views</h4>
+      <div class="views-grid-compact">
+        <div class="view-panel">
+          <div class="view-header view-header-top">Top View (XY)</div>
+          <div #topViewCanvas class="view-canvas-container">
+            <canvas #topCanvas class="view-canvas"></canvas>
+          </div>
+        </div>
+        <div class="view-panel">
+          <div class="view-header view-header-front">Front View (XZ)</div>
+          <div #frontViewCanvas class="view-canvas-container">
+            <canvas #frontCanvas class="view-canvas"></canvas>
+          </div>
+        </div>
+        <div class="view-panel">
+          <div class="view-header view-header-side">Side View (YZ)</div>
+          <div #sideViewCanvas class="view-canvas-container">
+            <canvas #sideCanvas class="view-canvas"></canvas>
+          </div>
+        </div>
+        <div class="view-panel view-instructions-panel">
+          <div class="view-instructions-compact">
+            <p><strong>Controls:</strong></p>
+            <ul>
+              <li>Center (green): Move</li>
+              <li>Edge (blue): Resize</li>
+              <li>Corner (magenta): Rotate</li>
+              <li>Right-click: Pan</li>
+              <li>Wheel: Zoom</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-container">
+
+    <div class="edit-panel">
+      <!-- Bounding box selection (only show when boxes exist) -->
+      <div class="dropdown-container" *ngIf="boundingBoxEditData.length > 0 && selectedBoundingBoxIndex !== null">
+        <select class="bounding-box-dropdown" [(ngModel)]="selectedBoundingBoxIndex"
+          (keydown)="handleSelectKeyDown($event)" (change)="onBoundingBoxSelect()">
+          <option [ngValue]="null" disabled>Select Bounding Box</option>
+          <option *ngFor="let box of boundingBoxEditData; let i = index" [ngValue]="i">
+            {{ box.obj_id + ' - ' + box.category_name }}
+          </option>
+        </select>
+        <button (click)="deleteSelectedBoundingBox()" class="delete-btn-compact" title="Delete Selected Box">
+          🗑️
+        </button>
+        <button class="object-nav-btn prev-object-btn"
+                [disabled]="!canSelectPreviousObject()"
+                (click)="selectPreviousObject()"
+                title="Previous Object">
+          ◀
+        </button>
+        <button class="object-nav-btn next-object-btn"
+                [disabled]="!canSelectNextObject()"
+                (click)="selectNextObject()"
+                title="Next Object">
+          ▶
+        </button>
+      </div>
+
+      <!-- Message when no boxes exist -->
+      <div *ngIf="boundingBoxEditData.length === 0" class="no-boxes-message">
+        <p>No bounding boxes found in this scene.</p>
+      </div>
+
+      <!-- Bounding box properties (only show when boxes exist and one is selected) -->
+      <div *ngIf="boundingBoxEditData.length > 0 && selectedBoundingBoxIndex !== null">
+        <h4>Bounding Box Properties</h4>
+        <div class="property-section">
+          <div class="property-group">
+            <h5>Position</h5>
+            <div class="property-row">
+              <label>X: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].centerX"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+              <label>Y: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].centerY"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+              <label>Z: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].centerZ"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <h5>Dimensions</h5>
+            <div class="property-row">
+              <label>X-axis: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].localSizeX"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+              <label>Y-axis: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].localSizeY"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+              <label>Z-axis: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].localSizeZ"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <h5>Rotation (rad)</h5>
+            <div class="property-row">
+              <label>X: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].rotationX"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+              <label>Y: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].rotationY"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+              <label>Z: <input type="number" [(ngModel)]="boundingBoxEditData[selectedBoundingBoxIndex].rotationZ"
+                  (change)="updateBoundingBox()" step="0.01"></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation controls (always visible) -->
+      <div class="edit-controls">
+        <div class="left-controls">
+          <button (click)="goToHome()" class="nav-btn home-btn">Home</button>
+        </div>
+        <div class="center-controls">
+          <button (click)="goToPreviousSample()" class="nav-btn prev-btn">Previous Sample</button>
+          <button (click)="goToNextSample()" class="nav-btn next-btn">Next Sample</button>
+        </div>
+        <div class="right-controls">
+          <button (click)="exportBoundingBoxesToJSON()" *ngIf="boundingBoxEditData.length > 0">Save Boxes</button>
+          <button (click)="goToNextUnlabeledSample()" class="nav-btn next-unlabeled-btn">⏭️ Next Unlabeled</button>
+        </div>
+      </div>
+
+      <!-- Annotation status indicator (always visible) -->
+      <div class="annotation-status" *ngIf="annotationCheckComplete">
+        <span class="status-indicator" [ngClass]="{'annotated': isAnnotated, 'not-annotated': !isAnnotated}">
+          <span class="status-icon">{{ isAnnotated ? '✓' : '○' }}</span>
+          <span class="status-text">{{ isAnnotated ? 'Annotated' : 'Not Annotated' }}</span>
+          <span class="annotator-info" *ngIf="currentAnnotator">
+            (by {{ currentAnnotator }})
+          </span>
+        </span>
+      </div>
+
+      <!-- Opt-out checkbox (always visible) -->
+      <div class="opt-out-container">
+        <label class="opt-out-label">
+          <input type="checkbox" [(ngModel)]="optOutChecked" (change)="handleOptOut()">
+          Opt out this image (mark for deletion)
+        </label>
+        <div *ngIf="optOutStatus" class="opt-out-status"
+          [ngClass]="{'status-success': optOutSuccess, 'status-error': !optOutSuccess}">
+          {{ optOutMessage }}
+        </div>
+      </div>
+    </div>
+
+    <div class="image-viewer-container">
+      <app-image-viewer [cubeList]="boundingJsonBoxData" [imagePath]="decoded_path" [selectedIndex]="selectedBoundingBoxIndex"></app-image-viewer>
+    </div>
+  </div>
+</div>

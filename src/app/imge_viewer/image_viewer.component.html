@@ -1,0 +1,21 @@
+<div class="canvas-container">
+  <div class="top-right-overlay">
+    <div class="path-info">{{ displayPath }}</div>
+    <button
+      class="toggle-button"
+      (click)="toggleShowOnlySelected()"
+      [class.active]="showOnlySelected">
+      {{ showOnlySelected ? 'Show All Objects' : 'Show Selected Only' }}
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    Loading...
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+
+  <canvas #cubeCanvas></canvas>
+</div>
