@@ -2,6 +2,12 @@
 
 A web-based 3D annotation tool built with Angular 19 and THREE.js for annotating 3D objects in point cloud data. The application provides synchronized 3D and 2D orthogonal views (Top/Front/Side) for precise bounding box editing.
 
+## Demo Video 
+*Best viewed in fullscreen*
+
+https://github.com/user-attachments/assets/7dd81e63-ac47-4995-9ade-58e07b43b6c3 
+
+
 ## Features
 
 - Interactive 3D point cloud visualization
