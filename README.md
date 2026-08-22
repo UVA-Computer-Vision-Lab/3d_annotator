@@ -150,3 +150,7 @@ The Express backend (`server.js`) provides the following REST API:
 ## Disclaimer
 
 This is a research/laboratory-grade tool intended for internal use only. It has not been security audited or performance optimized for production use. Use at your own risk.
+
+## License
+
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
